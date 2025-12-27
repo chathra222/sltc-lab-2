@@ -40,14 +40,19 @@ resource "aws_api_gateway_deployment" "my_api_deployment" {
   depends_on = [aws_api_gateway_integration.lambda_integration]
 
   rest_api_id = aws_api_gateway_rest_api.my_api.id
-  stage_name  = "dev" # stage name
   lifecycle {
     create_before_destroy = true
   }
 }
 
+resource "aws_api_gateway_stage" "my_stage" {
+  rest_api_id   = aws_api_gateway_rest_api.my_api.id
+  deployment_id = aws_api_gateway_deployment.my_api_deployment.id
+  stage_name    = var.stage_name # e.g. "dev" / "prod"
+}
+
 data "aws_region" "current" {}
 
 output "hello_invoke_url" {
-  value = "https://${aws_api_gateway_rest_api.my_api.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_deployment.my_api_deployment.stage_name}/hello"
+  value = "https://${aws_api_gateway_rest_api.my_api.id}.execute-api.${data.aws_region.current.region}.amazonaws.com/${var.stage_name}/hello"
 }
